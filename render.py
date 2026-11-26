@@ -57,6 +57,14 @@ body{{color:{INK};font-family:'Fraunces',serif;position:relative;
 """
 
 
+def launch(p):
+    import os
+    kw = {"args": ["--allow-file-access-from-files"]}
+    if os.path.exists("/usr/bin/google-chrome"):
+        kw["executable_path"] = "/usr/bin/google-chrome"
+    return p.chromium.launch(**kw)
+
+
 def page(inner: str, extra_css: str = "") -> str:
     return f"<!doctype html><html><head><meta charset='utf-8'><style>{BASE_CSS}{extra_css}</style></head><body>{inner}</body></html>"
 
@@ -114,7 +122,7 @@ def render_entry(entry_path: pathlib.Path, out_dir: pathlib.Path):
     out_dir.mkdir(parents=True, exist_ok=True)
     files = []
     with sync_playwright() as p:
-        b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--allow-file-access-from-files"])
+        b = launch(p)
         pg = b.new_page(viewport={"width": 1080, "height": 1350})
         for i, doc in enumerate(pages, start=1):
             tmp = out_dir / f"_tmp_{i}.html"
@@ -149,7 +157,7 @@ def render_avatar(out: pathlib.Path):
     tmp = out.parent / "_tmp_avatar.html"
     tmp.write_text(doc)
     with sync_playwright() as p:
-        b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--allow-file-access-from-files"])
+        b = launch(p)
         pg = b.new_page(viewport={"width": 1080, "height": 1080})
         pg.goto(f"file://{tmp}")
         pg.evaluate("document.fonts.ready")
